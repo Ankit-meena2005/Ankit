@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AM | Personal Portfolio</title>
+  <link rel="stylesheet" href="style.css" />
+  <script defer src="script.js"></script>
+</head>
+<body>
+  <header class="navbar">
+    <div class="logo">AM.</div>
+    <nav class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="#about">About</a>
+      <a href="#portfolio">Portfolio</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <a href="#contact"><button class="btn-primary">Reach Out</button></a>
+  </header>
+
+  <!-- Hero Section -->
+<section class="hero-section">
+  <div class="hero-content">
+    <span class="badge">Hello! I'm a Data Science Student</span>
+    <h1 class="typewriter-text">I'm <span class="highlight">Ankit Meena</span></h1>
+    <p>A data science student at IIIT Sonipat with a passion for web development and continuous learning.</p>
+
+    <div class="hero-buttons">
+      <a href="#about" class="btn btn-primary">Learn more →</a>
+      <a href="#portfolio" class="btn btn-secondary">View Portfolio</a>
+    </div>
+
+    <div class="tags">
+      <a href="https://www.python.org/doc/essays/blurb/" target="_blank" class="tag">Python</a>
+      <a href="https://developer.mozilla.org/en-US/docs/Web/CSS" target="_blank" class="tag">CSS</a>
+      <a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Scripting/What_is_JavaScript" target="_blank" class="tag">JavaScript</a>
+      <a href="https://developer.mozilla.org/en-US/docs/Web/HTML" target="_blank" class="tag">HTML</a>
+    </div>
+  </div>
+
+  <div class="hero-image">
+    <img src="profile.jpg" alt="Profile Image" />
+    <a href="https://www.geeksforgeeks.org/data-science/" target="_blank" class="label top-right">Data Science</a>
+    <a href="https://www.geeksforgeeks.org/web-development/" target="_blank" class="label bottom-left">Web Development</a>
+  </div>
+
+</section>
+
+
+  <section id="about" class="section about">
+    <h2>About Me</h2>
+    <p>I'm a Data Science student currently pursuing my B.Tech in Data Science and Analytics at IIIT Sonipat with an expected graduation in 2028.
+
+My academic journey is focused on building a strong foundation in data analysis, machine learning, and statistical methods. Alongside my core studies, I've developed a keen interest in web development, where I'm continuously expanding my skills in Python, HTML, and CSS.
+
+I believe in the power of continuous learning and am always seeking new opportunities to grow my skills and knowledge. Though I'm just beginning my journey, I'm excited about the intersection of data science and web technologies and how they can be used to create meaningful applications.
+
+ </p>
+    <div class="skills"><h2>Skill and Expertise</h2>
+      <div><label>Python</label><progress value="70" max="100"></progress></div>
+      <div><label>CSS</label><progress value="75" max="100"></progress></div>
+      <div><label>JavaScript</label><progress value="50" max="100"></progress></div>
+      <div><label>HTML</label><progress value="85" max="100"></progress></div>
+    </div><br>
+  </section>
+
+  <section id="portfolio" class="section portfolio">
+    <h2>Portfolio</h2>
+    <div class="project-box">
+      <h3>Project Coming Soon with #Python </h3>
+      <p>Exciting projects are underway. Stay tuned for showcases in AI tools, dashboard analytics, and creative frontend builds.</p>
+      <pre><code># Simple To-Do List CLI (incomplete)
+
+tasks = []
+
+def show_menu():
+    print("\n--- To-Do Menu ---")
+    print("1. Add Task")
+    print("2. View Tasks")
+    print("3. Exit")
+
+def add_task():
+    task = input("Enter task: ")
+    tasks.append(task)
+    print("Task added!")
+
+def view_tasks():
+    print("\n--- Your Tasks ---")
+    for i, task in enumerate(tasks, 1):
+        print(f"{i}. {task}")
+    # Need to handle empty task list here
+
+while True:
+    show_menu()
+    choice = input("Choose an option: ")
+
+    if choice == '1':
+        add_task()
+    elif choice == '2':
+        view_tasks()
+    elif choice == '3':
+        break
+    else:
+        print("Invalid choice. Try again.")
+</code></pre>
+    </div>
+  </section>
+
+
+  <section id="contact" class="section contact">
+    <h2>Contact Me</h2>
+    <form id="contactForm">
+      <input type="text" name="name" placeholder="Your Name" required />
+      <input type="email" name="email" placeholder="Email Address" required />
+      <textarea name="message" placeholder="Your Message" required></textarea>
+      <button type="submit" class="btn-primary">Send</button>
+    </form>
+    <div class="social-links">
+      <a href="https://www.linkedin.com/in/ankit-meena-2b8246340/">LinkedIn</a>
+      <a href="https://github.com/Ankit-meena2005">GitHub</a>
+      <a href="https://x.com/AnkitMeena24592">Twitter</a>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2025 Ankit's portfolio | Designed & built Using HTML,CSS and JavaScript.</p>
+  </footer>
+</body>
+</html>
