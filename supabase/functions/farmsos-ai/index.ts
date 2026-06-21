@@ -114,36 +114,53 @@ function fallbackSoil(r: any) {
   return { recommendations: recs, status: recs.length <= 1 ? "Healthy" : recs.length <= 3 ? "Moderate" : "Deficient" };
 }
 
-function fallbackAssistant(prompt: string) {
+function fallbackAssistant(prompt: string, lang: string = "en"): { reply: string; lang: string } {
   const p = (prompt || "").toLowerCase().trim();
-  if (!p || p === "hi" || p === "hello" || p === "namaste" || p === "नमस्ते") {
-    return { reply: "Namaste! I am FarmSOS AI, your farming assistant. I can help with: choosing the best crop for your soil, treating crop diseases, irrigation scheduling, soil nutrient advice, mandi prices, subsidies, and more. What would you like to know?" };
+  // Detect intent with keyword matching across all three languages
+  const isGreeting = !p || p === "hi" || p === "hello" || p === "namaste" || p === "नमस्ते" || p === "राम-राम" || p === "राम राम";
+  const isCrop   = p.includes("best crop") || p.includes("which crop") || p.includes("crop for") || p.includes("recommend") || p.includes("फसल") || p.includes("कौन सी फसल") || p.includes("कौन सी सब्ज़ी");
+  const isRust   = (p.includes("wheat") || p.includes("गेहूँ") || p.includes("गेंहूं")) && (p.includes("rust") || p.includes("yellow") || p.includes("पीला") || p.includes("रतुआ"));
+  const isIrrig  = p.includes("irrigation") || p.includes("irrigat") || p.includes("सिंचाई") || (p.includes("पानी") && p.includes("कब")) || ((p.includes("when") || p.includes("how")) && p.includes("water") && !p.includes("crop"));
+  const isSubsidy= p.includes("subsid") || p.includes("pm-kisan") || p.includes("कर्ज़ा") || p.includes("loan") || p.includes("सब्सिडी") || p.includes("योजना");
+  const isSoil   = p.includes("soil") || p.includes("मिट्टी") || p.includes("माटी");
+  const isPrice  = p.includes("price") || p.includes("मंडी") || p.includes("दाम") || p.includes("भाव") || p.includes("market");
+  const isDisease= p.includes("disease") || p.includes("pest") || p.includes("बीमारी") || p.includes("कीड़ा") || p.includes("पत्ती") && p.includes("पीला");
+
+  const hi = lang === "hi" || lang === "rj";
+  if (isGreeting) {
+    return hi ? { reply: "नमस्ते! मैं FarmSOS AI हूँ — आपका कृषि सहायक। मैं फसल चुनाव, सिंचाई, मिट्टी परीक्षण, कीट-रोग, मंडी भाव और सब्सिडी में मदद कर सकता हूँ। आप क्या जानना चाहते हैं?", lang }
+             : { reply: "Namaste! I am FarmSOS AI, your farming assistant. I can help with: choosing the best crop for your soil, treating crop diseases, irrigation scheduling, soil nutrient advice, mandi prices, subsidies, and more. What would you like to know?", lang };
   }
-  if (p.includes("wheat") && (p.includes("rust") || p.includes("yellow"))) {
-    return { reply: "Wheat yellow (stripe) rust appears as yellow stripes on leaves. Spray Propiconazole 25 EC @ 0.1% at 15-day intervals and switch to resistant variety HD-3226 next cycle." };
+  if (isRust) {
+    return hi ? { reply: "गेहूँ का पीला रतुआ पत्तियों पर पीली धारियों के रूप में दिखता है। 15 दिन के अंतर पर प्रोपिकोनाज़ोल 25 EC 0.1% छिड़कें और अगली बार HD-3226 प्रतिरोधी किस्म बोएँ।", lang }
+             : { reply: "Wheat yellow (stripe) rust appears as yellow stripes on leaves. Spray Propiconazole 25 EC @ 0.1% at 15-day intervals and switch to resistant variety HD-3226 next cycle.", lang };
   }
-  if (p.includes("best crop") || p.includes("which crop") || p.includes("crop for") || p.includes("recommend") || p.includes("फसल")) {
-    return { reply: "For sandy soil with limited water, Bajra and Mustard are ideal. For loamy soil with good water, Wheat gives the highest profit per acre in Rajasthan Rabi season. Use the AI Crop Planner module for a personalized recommendation with profit forecasts." };
+  if (isCrop) {
+    return hi ? { reply: "रेतीली मिट्टी और कम पानी वाले खेत के लिए बाजरा और सरसों सबसे उपयुक्त हैं। दोमट मिट्टी में गेहूँ प्रति एकड़ सबसे अधिक लाभ देता है। विस्तृत सुझाव के लिए AI फसल योजक मॉड्यूल इस्तेमाल करें।", lang }
+             : { reply: "For sandy soil with limited water, Bajra and Mustard are ideal. For loamy soil with good water, Wheat gives the highest profit per acre in Rajasthan Rabi season. Use the AI Crop Planner module for a personalized recommendation with profit forecasts.", lang };
   }
-  if (p.includes("irrigation") || (p.includes("when") && p.includes("irrigat")) || p.includes("सिंचाई")) {
-    return { reply: "For wheat in Rabi, irrigate at CRI (21 DAS), tillering, late jointing, flowering and grain filling — about 5 irrigations totaling ~40 cm. Skip if >5mm rain in prior 3 days." };
+  if (isIrrig) {
+    return hi ? { reply: "रबी की गेहूँ में CRI (21 दिन), कल्ले निकलने, जोड़, फूल और दाना भरने — कुल 5 सिंचाई करें। पिछले 3 दिन में 5 मिमी से ज़्यादा बारिश हो तो सिंचाई छोड़ दें।", lang }
+             : { reply: "For wheat in Rabi, irrigate at CRI (21 DAS), tillering, late jointing, flowering and grain filling — about 5 irrigations totaling ~40 cm. Skip if >5mm rain in prior 3 days.", lang };
   }
-  if (p.includes("subsidy") || p.includes("pm-kisan") || p.includes("कर्ज़ा") || p.includes("loan")) {
-    return { reply: "PM-Kisan gives Rs 6000/year in 3 installments. Drip irrigation has 55-90% subsidy under PMKSY. Soil Health Card is free. Solar pumps: 60% subsidy under KUSUM." };
+  if (isSubsidy) {
+    return hi ? { reply: "PM-Kisan योजना में सालाना 3 किस्तों में 6000 रुपये मिलते हैं। ड्रिप सिंचाई पर PMKSY के तहत 55-90% सब्सिडी, मृदा स्वास्थ्य कार्ड निःशुल्क, और सौर पंप पर KUSUM में 60% सब्सिडी उपलब्ध है।", lang }
+             : { reply: "PM-Kisan gives Rs 6000/year in 3 installments. Drip irrigation has 55-90% subsidy under PMKSY. Soil Health Card is free. Solar pumps: 60% subsidy under KUSUM.", lang };
   }
-  if (p.includes("soil") || p.includes("मिट्टी") || p.includes("माटी")) {
-    return { reply: "Healthy soil needs balanced NPK, organic carbon above 0.5%, and pH between 6.2-7.5. Get a free Soil Health Card from your nearest KVK to test your fields." };
+  if (isSoil) {
+    return hi ? { reply: "स्वस्थ मिट्टी के लिए NPK संतुलित, जैविक कार्बन 0.5% से ऊपर, और pH 6.2-7.5 के बीच रखें। निःशुल्क मृदा स्वास्थ्य कार्ड के लिए अपने नज़दीकी KVK से संपर्क करें।", lang }
+             : { reply: "Healthy soil needs balanced NPK, organic carbon above 0.5%, and pH between 6.2-7.5. Get a free Soil Health Card from your nearest KVK to test your fields.", lang };
   }
-  if (p.includes("price") || p.includes("मंडी") || p.includes("दाम") || p.includes("भाव")) {
-    return { reply: "Today's Kota mandi: Wheat ~Rs 2400/qtl, Mustard ~Rs 5890/qtl, Bajra ~Rs 2690/qtl. Prices usually peak 2-3 months after harvest — check the Price Forecast module for the best selling date." };
+  if (isPrice) {
+    return hi ? { reply: "आज कोटा मंडी: गेहूँ ~₹2400/क्विंटल, सरसों ~₹5890/क्विंटल, बाजरा ~₹2690/क्विंटल। कटाई के 2-3 महीने बाद भाव आमतौर पर चरम पर होते हैं — बेहतर बिक्री तिथि के लिए मंडी भाव पूर्वानुमान मॉड्यूल देखें।", lang }
+             : { reply: "Today's Kota mandi: Wheat ~Rs 2400/qtl, Mustard ~Rs 5890/qtl, Bajra ~Rs 2690/qtl. Prices usually peak 2-3 months after harvest — check the Price Forecast module for the best selling date.", lang };
   }
-  if (p.includes("disease") || p.includes("pest") || p.includes("बीमारी")) {
-    return { reply: "Upload a photo of the affected crop in the AI Image Analysis module. The model detects disease, pests and nutrient deficiency and gives treatment steps within seconds." };
+  if (isDisease) {
+    return hi ? { reply: "प्रभावित फसल की तस्वीर AI चित्र विश्लेषण मॉड्यूल में अपलोड करें। मॉडल कुछ ही क्षणों में रोग/कीट/पोषक तत्व की पहचान और उपचार बताता है।", lang }
+             : { reply: "Upload a photo of the affected crop in the AI Image Analysis module. The model detects disease, pests and nutrient deficiency and gives treatment steps within seconds.", lang };
   }
-  if (p.includes("water") && !p.includes("crop")) {
-    return { reply: "For wheat in Rabi, irrigate at CRI (21 DAS), tillering, late jointing, flowering and grain filling — about 5 irrigations totaling ~40 cm. Use the Smart Irrigation module for stage-wise water calculations." };
-  }
-  return { reply: "I can advise on crops, irrigation, soil, pests, prices and subsidies. Try asking: 'Best crop for sandy soil with limited water?' or 'How to treat yellow rust in wheat?' or 'When to irrigate wheat?'." };
+  return hi ? { reply: "मैं फसल, सिंचाई, मिट्टी, कीट-रोग, मंडी भाव और सब्सिडी पर सलाह दे सकता हूँ। पूछें: 'रेतीली मिट्टी के लिए सबसे अच्छी फसल?' या 'गेहूँ में पीला रतुआ कैसे ठीक करें?' या 'गेहूँ को कब सिंचाई करें?'", lang }
+            : { reply: "I can advise on crops, irrigation, soil, pests, prices and subsidies. Try asking: 'Best crop for sandy soil with limited water?' or 'How to treat yellow rust in wheat?' or 'When to irrigate wheat?'.", lang };
 }
 
 // Deterministic "vision" fallback: cycle through plausible diagnoses
@@ -202,11 +219,14 @@ async function handleImage(body: any) {
 }
 
 async function handleAssistant(input: any) {
-  const ai = await callGemini(
-    `You are FarmSOS, an AI agriculture advisor for Indian farmers in Hindi and English. Answer briefly and practically (max 3 sentences): ${input.prompt}`
+  const lang = input.lang ?? 'en';
+  const langName = lang === 'hi' || lang === 'rj' ? 'Hindi (Devanagari script)' : 'English';
+  const aiReply = await callGemini(
+    `You are FarmSOS, an AI agriculture advisor for Indian farmers. Reply in ${langName}. Answer briefly and practically (max 3 sentences): ${input.prompt}`
   );
-  if (ai && ai.trim()) return { reply: ai };
-  return fallbackAssistant(input.prompt ?? "");
+  if (aiReply && aiReply.trim()) return { reply: aiReply, lang };
+  const fb = fallbackAssistant(input.prompt ?? "", lang);
+  return { reply: fb.reply, lang: fb.lang };
 }
 
 Deno.serve(async (req) => {

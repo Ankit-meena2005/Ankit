@@ -45,6 +45,7 @@ async function call<T>(body: any): Promise<T> {
   }
 }
 
+export type AIAssistantResult = { reply: string; lang?: 'hi' | 'en' | 'rj' }
 export const ai = {
   planner: (input: { soil: string; water: string; marketTrend: string; weatherRain: number }) =>
     call<PlannerResult>({ action: 'planner', ...input }),
@@ -52,6 +53,6 @@ export const ai = {
     call<SoilAdvice>({ action: 'soil', report }),
   image: (imageBase64: string, mime = 'image/jpeg') =>
     call<ImageResult>({ action: 'image', imageBase64, mime }),
-  assistant: (prompt: string) =>
-    call<AssistantResult>({ action: 'assistant', prompt })
+  assistant: (prompt: string, lang: 'hi' | 'en' | 'rj' = 'en') =>
+    call<AIAssistantResult>({ action: 'assistant', prompt, lang })
 }

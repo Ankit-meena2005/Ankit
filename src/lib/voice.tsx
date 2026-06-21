@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLang } from '../i18n/LanguageContext'
 
@@ -7,7 +7,7 @@ type VoiceCtx = {
   supported: boolean
   start: () => void
   stop: () => void
-  speak: (text: string) => void
+  speak: (text: string, opts?: { lang?: 'hi' | 'en' | 'rj' }) => void
 }
 
 const VoiceContext = createContext<VoiceCtx | null>(null)
@@ -78,14 +78,51 @@ export function VoiceNavProvider({ children }: { children: ReactNode }) {
     setListening(false)
   }, [])
 
-  const speak = useCallback((text: string) => {
+  // Pick the best available voice for the target language.
+  // Browsers expose a mix of hi-IN, en-IN, en-US voices; we prefer hi-IN when
+  // the app language is Hindi/Rajasthani, else en-IN (Indian English accent).
+  const pickVoice = (targetLang: string): SpeechSynthesisVoice | null => {
     try {
+      const voices = window.speechSynthesis?.getVoices?.() ?? []
+      if (!voices.length) return null
+      const want = targetLang.startsWith('hi') ? 'hi' : 'en'
+      // Prefer exact locale match, then language prefix, then Indian English as fallback
+      const exact = voices.find((v) => v.lang?.toLowerCase() === (targetLang === 'hi-IN' ? 'hi-in' : 'en-in'))
+      if (exact) return exact
+      const prefix = voices.find((v) => v.lang?.toLowerCase().startsWith(want) && /female|google|microsoft/i.test(v.name))
+      if (prefix) return prefix
+      const anyPrefix = voices.find((v) => v.lang?.toLowerCase().startsWith(want))
+      if (anyPrefix) return anyPrefix
+      // Fallback to any en voice so we always get audio
+      return voices.find((v) => v.lang?.toLowerCase().startsWith('en')) ?? voices[0]
+    } catch {
+      return null
+    }
+  }
+
+  const speak = useCallback((text: string, opts?: { lang?: 'hi' | 'en' | 'rj' }) => {
+    try {
+      const targetLang = opts?.lang ?? lang
+      const locale = targetLang === 'hi' || targetLang === 'rj' ? 'hi-IN' : 'en-IN'
       const u = new SpeechSynthesisUtterance(text)
-      u.lang = lang === 'hi' ? 'hi-IN' : 'en-IN'
+      u.lang = locale
+      const v = pickVoice(locale)
+      if (v) u.voice = v
+      u.rate = 0.95
+      u.pitch = 1
       window.speechSynthesis.cancel()
       window.speechSynthesis.speak(u)
     } catch { /* noop */ }
   }, [lang])
+
+  // Warm up the voice list — some browsers (Chrome) load it asynchronously
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return
+    const load = () => { try { window.speechSynthesis.getVoices() } catch { /* noop */ } }
+    load()
+    window.speechSynthesis.onvoiceschanged = load
+    return () => { try { window.speechSynthesis.onvoiceschanged = null } catch { /* noop */ } }
+  }, [])
 
   return (
     <VoiceContext.Provider value={{ listening, supported, start, stop, speak }}>
