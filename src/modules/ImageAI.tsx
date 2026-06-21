@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Upload, Brain, ScanLine, AlertTriangle, Leaf, Bug, FlaskRound, Activity, Image as ImageIcon } from 'lucide-react'
+import { Upload, Brain, ScanLine, TriangleAlert as AlertTriangle, Leaf, Bug, FlaskRound, Activity, Image as ImageIcon } from 'lucide-react'
 import { Section, Card, Badge } from '../components/ui'
 import { useToast } from '../lib/toast'
 

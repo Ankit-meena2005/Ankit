@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, Satellite, Sprout, Droplets, LineChart, Mic, Users, Shield, Store, Brain, MapPin, TrendingUp } from 'lucide-react'
+import { ArrowRight, Satellite, Sprout, Droplets, ChartLine as LineChart, Mic, Users, Shield, Store, Brain, MapPin, TrendingUp } from 'lucide-react'
 import { LineChart as RChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts'
 import { useLang } from '../i18n/LanguageContext'
 import { Stat } from '../components/ui'

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { TrendingUp, Calendar, IndianRupee, Target, LineChart as LI } from 'lucide-react'
+import { TrendingUp, Calendar, IndianRupee, Target, ChartLine as LI } from 'lucide-react'
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine,
   Area, AreaChart, ReferenceDot

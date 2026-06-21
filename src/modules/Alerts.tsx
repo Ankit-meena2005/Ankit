@@ -1,4 +1,4 @@
-import { CloudRain, ThermometerSun, Bug, Megaphone, AlertTriangle } from 'lucide-react'
+import { CloudRain, ThermometerSun, Bug, Megaphone, TriangleAlert as AlertTriangle } from 'lucide-react'
 import { Section, Card, Badge } from '../components/ui'
 import { alerts } from '../lib/data'
 

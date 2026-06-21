@@ -1,4 +1,4 @@
-import { TrendingUp, IndianRupee, PiggyBank, AlertTriangle, LineChart as LI } from 'lucide-react'
+import { TrendingUp, IndianRupee, PiggyBank, TriangleAlert as AlertTriangle, ChartLine as LI } from 'lucide-react'
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
   RadialBarChart, RadialBar, PolarAngleAxis, BarChart, Bar, Legend

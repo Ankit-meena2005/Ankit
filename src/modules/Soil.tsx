@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Upload, FlaskConical, Beaker, Leaf, AlertTriangle, CheckCircle2, Sprout } from 'lucide-react'
+import { Upload, FlaskConical, Beaker, Leaf, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle2, Sprout } from 'lucide-react'
 import {
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer
 } from 'recharts'

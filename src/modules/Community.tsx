@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { MessagesSquare, Plus, Reply, Users, HelpCircle, Send } from 'lucide-react'
+import { MessagesSquare, Plus, Reply, Users, CircleHelp as HelpCircle, Send } from 'lucide-react'
 import { Section, Card, Badge } from '../components/ui'
 import { communityPosts, uuid, type CommunityPost } from '../lib/data'
 import { useToast } from '../lib/toast'
