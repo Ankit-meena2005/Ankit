@@ -1,26 +1,37 @@
+import { useEffect, useState } from 'react'
 import { CloudRain, ThermometerSun, Bug, Megaphone, TriangleAlert as AlertTriangle } from 'lucide-react'
 import { Section, Card, Badge } from '../components/ui'
-import { alerts } from '../lib/data'
+import { fetchAlerts, type Alert } from '../lib/data'
 
-const ICONS = { Flood: CloudRain, Heatwave: ThermometerSun, Pest: Bug, Advisory: Megaphone }
+const DEFAULT_ALERTS: Alert[] = [
+  { id: 'a1', type: 'Heatwave', title: 'Heatwave warning — Kota & Baran', severity: 'High', region: 'Hadoti', published_at: '2025-03-21' },
+  { id: 'a2', type: 'Pest', title: 'Armyworm risk rising in wheat belt', severity: 'Moderate', region: 'Eastern RJ', published_at: '2025-03-19' },
+  { id: 'a3', type: 'Advisory', title: 'ICAR advisory: optimize irrigation for grain filling stage', severity: 'Low', region: 'Statewide', published_at: '2025-03-20' },
+  { id: 'a4', type: 'Flood', title: 'Minor flooding risk — Chambal catchment', severity: 'Low', region: 'Kota', published_at: '2025-03-17' }
+]
+
+const ICONS = { Flood: CloudRain, Heatwave: ThermometerSun, Pest: Bug, Advisory: Megaphone } as const
 const SEV_COLORS = { Low: 'blue', Moderate: 'amber', High: 'amber', Severe: 'red' } as const
 
 export default function Alerts() {
+  const [alerts, setAlerts] = useState<Alert[]>(DEFAULT_ALERTS)
+  useEffect(() => { fetchAlerts().then((a) => { if (a.length) setAlerts(a) }) }, [])
+
   const sorted = [...alerts].sort((a, b) => b.severity.length - a.severity.length)
+
   return (
     <Section
       title="Emergency Alert Center"
       subtitle="Real-time flood, heatwave, pest and government advisory alerts for your region."
-      action={<Badge color="red"><AlertTriangle size={12} /> 4 active alerts</Badge>}
+      action={<Badge color="red"><AlertTriangle size={12} /> {alerts.length} active alerts</Badge>}
     >
-      {/* Top callout */}
       <Card className="p-5 mb-6 bg-gradient-to-br from-amber-500/15 to-transparent border-amber-500/30">
         <div className="flex items-start gap-3">
           <ThermometerSun className="text-amber-300 mt-1 flex-shrink-0" size={24} />
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-display text-lg font-semibold">Heatwave Warning — Kota & Baran</span>
-              <Badge color="red">Severe</Badge>
+              <span className="font-display text-lg font-semibold">{sorted[0]?.title ?? 'No active alerts'}</span>
+              {sorted[0] && <Badge color="red">{sorted[0].severity}</Badge>}
             </div>
             <p className="text-sm text-night-200 mt-1">Temperatures expected above 42°C from Mar 24–26. Irrigate fields early morning, provide shade for livestock, avoid pesticide spray during peak heat.</p>
             <div className="text-xs text-night-400 mt-2">Source: IMD Rajasthan · Issued 06:30 IST · Active 72 hours</div>
@@ -41,12 +52,10 @@ export default function Alerts() {
                       <span className="font-semibold">{a.title}</span>
                       <Badge color={SEV_COLORS[a.severity]}>{a.severity}</Badge>
                     </div>
-                    <div className="text-xs text-night-400 mt-1">
-                      {a.type} · {a.region} · {a.published_at}
-                    </div>
+                    <div className="text-xs text-night-400 mt-1">{a.type} · {a.region} · {a.published_at}</div>
                   </div>
                 </div>
-                <button className="btn-ghost text-xs">View</button>
+                <button className="btn-ghost text-xs">View details</button>
               </div>
             </Card>
           )

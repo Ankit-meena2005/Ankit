@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
 import Layout from './components/Layout'
+import AIAssistant from './components/AIAssistant'
 import Home from './modules/Home'
 import FarmTwin from './modules/FarmTwin'
 import Satellite from './modules/Satellite'
@@ -40,6 +41,7 @@ export default function App() {
         <Route path="/analytics" element={<Analytics />} />
         <Route path="/admin" element={<Admin />} />
       </Routes>
+      <AIAssistant />
     </Layout>
   )
 }

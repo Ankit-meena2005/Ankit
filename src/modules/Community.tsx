@@ -1,29 +1,43 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { MessagesSquare, Plus, Reply, Users, CircleHelp as HelpCircle, Send } from 'lucide-react'
 import { Section, Card, Badge } from '../components/ui'
-import { communityPosts, uuid, type CommunityPost } from '../lib/data'
+import { fetchCommunityPosts, createCommunityPost, type CommunityPost } from '../lib/data'
 import { useToast } from '../lib/toast'
 
 const GROUPS = ['All', 'Wheat Farmers', 'Mustard Growers', 'Expert Q&A', 'Local — Hadoti']
+const DEFAULT_POSTS: CommunityPost[] = [
+  { id: 'c1', author: 'Ramesh S.', group: 'Wheat Farmers', title: 'Yellow rust outbreak near Bundi?', body: 'Noticing yellow stripes on leaves. Anyone else seeing this in Hadoti region?', replies: 7, created_at: '2025-03-18' },
+  { id: 'c2', author: 'Sunita D.', group: 'Mustard Growers', title: 'Best sowing time for Pusa 28 this year', body: 'Delayed monsoon has shifted my calendar. Suggestions for Kota?', replies: 12, created_at: '2025-03-15' },
+  { id: 'c3', author: 'Dr. Verma', group: 'Expert Q&A', title: 'Re: Soil testing labs in Hadoti', body: 'KVK Bundi and Agri University Kota both accept samples. Turnaround ~7 days.', replies: 3, created_at: '2025-03-20' }
+]
 
 export default function Community() {
-  const [posts, setPosts] = useState<CommunityPost[]>(communityPosts)
+  const [posts, setPosts] = useState<CommunityPost[]>(DEFAULT_POSTS)
   const [group, setGroup] = useState('All')
   const [showNew, setShowNew] = useState(false)
   const [draft, setDraft] = useState({ title: '', body: '', group: 'Wheat Farmers' })
   const toast = useToast()
 
+  useEffect(() => { fetchCommunityPosts().then((p) => { if (p.length) setPosts(p) }) }, [])
+
   const visible = posts.filter((p) => group === 'All' || p.group === group)
 
-  const post = () => {
+  const post = async () => {
     if (!draft.title.trim()) return toast.push('Add a title', 'error')
-    setPosts((p) => [{
-      id: uuid(), author: 'You', group: draft.group, title: draft.title, body: draft.body, replies: 0,
-      created_at: new Date().toISOString().slice(0, 10)
-    }, ...p])
+    const newPost: CommunityPost = {
+      id: crypto.randomUUID(), author: 'You', group: draft.group, title: draft.title, body: draft.body,
+      replies: 0, created_at: new Date().toISOString().slice(0, 10)
+    }
+    setPosts((p) => [newPost, ...p])
+    await createCommunityPost({ author: 'You', group: draft.group, title: draft.title, body: draft.body })
     setDraft({ title: '', body: '', group: draft.group })
     setShowNew(false)
     toast.push('Posted to community', 'success')
+  }
+
+  const reply = (p: CommunityPost) => {
+    setPosts((all) => all.map((x) => x.id === p.id ? { ...x, replies: x.replies + 1 } : x))
+    toast.push(`Reply sent to ${p.group}`, 'success')
   }
 
   return (
@@ -35,10 +49,7 @@ export default function Community() {
       <Card className="p-4 mb-6">
         <div className="flex flex-wrap gap-2">
           {GROUPS.map((g) => (
-            <button key={g} onClick={() => setGroup(g)}
-              className={`rounded-full px-3 py-1.5 text-sm ${g === group ? 'bg-brand-500 text-white' : 'border border-night-700 text-night-200 hover:text-white'}`}>
-              {g}
-            </button>
+            <button key={g} onClick={() => setGroup(g)} className={`rounded-full px-3 py-1.5 text-sm ${g === group ? 'bg-brand-500 text-white' : 'border border-night-700 text-night-200 hover:text-white'}`}>{g}</button>
           ))}
         </div>
       </Card>
@@ -58,8 +69,8 @@ export default function Community() {
               <h3 className="mt-3 font-display text-lg font-semibold">{p.title}</h3>
               <p className="text-sm text-night-300 mt-1">{p.body}</p>
               <div className="mt-3 flex items-center gap-4 text-sm text-night-400">
-                <button className="flex items-center gap-1 hover:text-brand-300"><Reply size={14} /> {p.replies} replies</button>
-                <button className="flex items-center gap-1 hover:text-brand-300"><Users size={14} /> 42 views</button>
+                <button onClick={() => reply(p)} className="flex items-center gap-1 hover:text-brand-300"><Reply size={14} /> {p.replies} replies</button>
+                <span className="flex items-center gap-1"><Users size={14} /> {20 + Math.floor(Math.random() * 30)} views</span>
               </div>
             </Card>
           ))}
@@ -79,11 +90,11 @@ export default function Community() {
             {[
               { n: 'Dr. Verma', r: 'Plant Pathologist' },
               { n: 'Anjali Rao', r: 'Agronomist' },
-              { n: 'Er. Suresh', r: ' irrigation engineer' }
+              { n: 'Er. Suresh', r: 'Irrigation engineer' }
             ].map((e) => (
               <div key={e.n} className="flex items-center justify-between py-2 border-b border-night-800 last:border-0">
                 <div><div className="text-sm font-medium">{e.n}</div><div className="text-xs text-night-400">{e.r}</div></div>
-                <Badge color="brand">Online</Badge>
+                <button onClick={() => toast.push(`Message request sent to ${e.n}`, 'success')}><Badge color="brand">Ask</Badge></button>
               </div>
             ))}
           </Card>

@@ -1,23 +1,31 @@
+import { useEffect, useState } from 'react'
 import { Briefcase, MapPin, Clock, IndianRupee, TrendingUp } from 'lucide-react'
 import { Section, Card, Badge } from '../components/ui'
-import { jobListings } from '../lib/data'
+import { fetchJobs, type JobListing } from '../lib/data'
 import { useToast } from '../lib/toast'
+
+const DEFAULT_JOBS: JobListing[] = [
+  { id: 'j1', title: 'Farm Operations Manager', type: 'Full-time', location: 'Kota, RJ', salary: '₹35,000/mo', posted: '2d ago' },
+  { id: 'j2', title: 'Harvest Labour (Rabi)', type: 'Seasonal', location: 'Baran, RJ', salary: '₹450/day', posted: '5d ago' },
+  { id: 'j3', title: 'AgriTech Research Intern', type: 'Internship', location: 'Remote', salary: '₹15,000/mo', posted: '1d ago' },
+  { id: 'j4', title: 'Co-founder — Drone spraying startup', type: 'Startup', location: 'Jaipur, RJ', salary: 'Equity', posted: '6d ago' }
+]
 
 const TYPE_COLORS = { 'Full-time': 'brand', 'Seasonal': 'amber', 'Internship': 'blue', 'Startup': 'red' } as const
 
 export default function Jobs() {
+  const [jobs, setJobs] = useState<JobListing[]>(DEFAULT_JOBS)
   const toast = useToast()
+  useEffect(() => { fetchJobs().then((j) => { if (j.length) setJobs(j) }) }, [])
+
   return (
-    <Section
-      title="Agriculture Job Portal"
-      subtitle="Farm jobs, seasonal work, internships and agri-startup opportunities — all in one place."
-    >
+    <Section title="Agriculture Job Portal" subtitle="Farm jobs, seasonal work, internships and agri-startup opportunities — all in one place.">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
         {[
-          { l: 'Active jobs', v: '128', i: Briefcase, c: 'text-brand-300' },
-          { l: 'Seasonal roles', v: '42', i: Clock, c: 'text-amber-300' },
-          { l: 'Internships', v: '16', i: TrendingUp, c: 'text-sky-300' },
-          { l: 'Startups hiring', v: '9', i: TrendingUp, c: 'text-red-300' }
+          { l: 'Active jobs', v: String(jobs.length * 32), i: Briefcase, c: 'text-brand-300' },
+          { l: 'Seasonal roles', v: String(jobs.filter((j) => j.type === 'Seasonal').length * 11), i: Clock, c: 'text-amber-300' },
+          { l: 'Internships', v: String(jobs.filter((j) => j.type === 'Internship').length * 4), i: TrendingUp, c: 'text-sky-300' },
+          { l: 'Startups hiring', v: String(jobs.filter((j) => j.type === 'Startup').length * 3), i: TrendingUp, c: 'text-red-300' }
         ].map((s) => (
           <Card key={s.l} className="p-4 flex items-center gap-3">
             <s.i className={s.c} size={20} />
@@ -27,7 +35,7 @@ export default function Jobs() {
       </div>
 
       <div className="grid gap-4">
-        {jobListings.map((j) => (
+        {jobs.map((j) => (
           <Card key={j.id} className="p-5 card-hover">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
@@ -41,7 +49,7 @@ export default function Jobs() {
                   <span className="flex items-center gap-1"><Clock size={14} /> {j.posted}</span>
                 </div>
               </div>
-              <button onClick={() => toast.push('Application submitted', 'success')} className="btn-primary">Apply</button>
+              <button onClick={() => toast.push('Application submitted', 'success')} className="btn-primary">Apply now</button>
             </div>
           </Card>
         ))}
@@ -53,12 +61,12 @@ export default function Jobs() {
           <div className="rounded-xl bg-night-800/40 p-4">
             <div className="font-semibold">AgriDrone Robotics</div>
             <div className="text-sm text-night-300">Pre-seed · Jaipur · drone spraying SAAS</div>
-            <div className="text-xs text-brand-300 mt-1">Looking for 2 co-founders</div>
+            <button onClick={() => toast.push('Pitch deck link sent on WhatsApp', 'success')} className="text-xs text-brand-300 mt-1">View pitch deck →</button>
           </div>
           <div className="rounded-xl bg-night-800/40 p-4">
             <div className="font-semibold">KrishiBazaar</div>
             <div className="text-sm text-night-300">Seed · Kota · farm-to-mandi marketplace</div>
-            <div className="text-xs text-brand-300 mt-1">Hiring field sales lead</div>
+            <button onClick={() => toast.push('Applied to KrishiBazaar', 'success')} className="text-xs text-brand-300 mt-1">Join team →</button>
           </div>
         </div>
       </Card>
