@@ -20,33 +20,44 @@ const GEMINI_TXT = "https://generativelanguage.googleapis.com/v1beta/models/gemi
 const GEMINI_VIS = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + GEMINI_KEY;
 
 async function callGemini(prompt: string): Promise<string> {
-  if (!GEMINI_KEY) return "";
-  const r = await fetch(GEMINI_TXT, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.4, responseMimeType: "application/json" }
-    })
-  });
-  if (!r.ok) throw new Error("gemini " + r.status);
-  const j = await r.json();
-  return j?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+  // Treat missing/placeholder keys as "no Gemini configured"
+  if (!GEMINI_KEY || GEMINI_KEY.length < 10) return "";
+  try {
+    const r = await fetch(GEMINI_TXT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.4, responseMimeType: "application/json" }
+      })
+    });
+    if (!r.ok) { console.error("gemini", r.status); return ""; }
+    const j = await r.json();
+    return j?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+  } catch (e) {
+    console.error("gemini-error", e);
+    return "";
+  }
 }
 
 async function callGeminiVision(prompt: string, imageBase64: string, mime: string): Promise<string> {
-  if (!GEMINI_KEY) return "";
-  const r = await fetch(GEMINI_VIS, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: mime, data: imageBase64 } }] }],
-      generationConfig: { temperature: 0.3, responseMimeType: "application/json" }
-    })
-  });
-  if (!r.ok) throw new Error("gemini-vision " + r.status);
-  const j = await r.json();
-  return j?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+  if (!GEMINI_KEY || GEMINI_KEY.length < 10) return "";
+  try {
+    const r = await fetch(GEMINI_VIS, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: mime, data: imageBase64 } }] }],
+        generationConfig: { temperature: 0.3, responseMimeType: "application/json" }
+      })
+    });
+    if (!r.ok) { console.error("gemini-vision", r.status); return ""; }
+    const j = await r.json();
+    return j?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+  } catch (e) {
+    console.error("gemini-vision-error", e);
+    return "";
+  }
 }
 
 // ---- Deterministic fallback advisory (no API key) ---------------------------
@@ -104,17 +115,35 @@ function fallbackSoil(r: any) {
 }
 
 function fallbackAssistant(prompt: string) {
-  const p = prompt.toLowerCase();
+  const p = (prompt || "").toLowerCase().trim();
+  if (!p || p === "hi" || p === "hello" || p === "namaste" || p === "नमस्ते") {
+    return { reply: "Namaste! I am FarmSOS AI, your farming assistant. I can help with: choosing the best crop for your soil, treating crop diseases, irrigation scheduling, soil nutrient advice, mandi prices, subsidies, and more. What would you like to know?" };
+  }
   if (p.includes("wheat") && (p.includes("rust") || p.includes("yellow"))) {
     return { reply: "Wheat yellow (stripe) rust appears as yellow stripes on leaves. Spray Propiconazole 25 EC @ 0.1% at 15-day intervals and switch to resistant variety HD-3226 next cycle." };
   }
-  if (p.includes("irrigation") || p.includes("water")) {
+  if (p.includes("best crop") || p.includes("which crop") || p.includes("crop for") || p.includes("recommend") || p.includes("फसल")) {
+    return { reply: "For sandy soil with limited water, Bajra and Mustard are ideal. For loamy soil with good water, Wheat gives the highest profit per acre in Rajasthan Rabi season. Use the AI Crop Planner module for a personalized recommendation with profit forecasts." };
+  }
+  if (p.includes("irrigation") || (p.includes("when") && p.includes("irrigat")) || p.includes("सिंचाई")) {
     return { reply: "For wheat in Rabi, irrigate at CRI (21 DAS), tillering, late jointing, flowering and grain filling — about 5 irrigations totaling ~40 cm. Skip if >5mm rain in prior 3 days." };
   }
-  if (p.includes("subsidy") || p.includes("pm-kisan")) {
+  if (p.includes("subsidy") || p.includes("pm-kisan") || p.includes("कर्ज़ा") || p.includes("loan")) {
     return { reply: "PM-Kisan gives Rs 6000/year in 3 installments. Drip irrigation has 55-90% subsidy under PMKSY. Soil Health Card is free. Solar pumps: 60% subsidy under KUSUM." };
   }
-  return { reply: "I can advise on crops, irrigation, soil, pests, prices and subsidies. Try: 'Best crop for sandy soil with limited water?' or 'How to treat yellow rust in wheat?'" };
+  if (p.includes("soil") || p.includes("मिट्टी") || p.includes("माटी")) {
+    return { reply: "Healthy soil needs balanced NPK, organic carbon above 0.5%, and pH between 6.2-7.5. Get a free Soil Health Card from your nearest KVK to test your fields." };
+  }
+  if (p.includes("price") || p.includes("मंडी") || p.includes("दाम") || p.includes("भाव")) {
+    return { reply: "Today's Kota mandi: Wheat ~Rs 2400/qtl, Mustard ~Rs 5890/qtl, Bajra ~Rs 2690/qtl. Prices usually peak 2-3 months after harvest — check the Price Forecast module for the best selling date." };
+  }
+  if (p.includes("disease") || p.includes("pest") || p.includes("बीमारी")) {
+    return { reply: "Upload a photo of the affected crop in the AI Image Analysis module. The model detects disease, pests and nutrient deficiency and gives treatment steps within seconds." };
+  }
+  if (p.includes("water") && !p.includes("crop")) {
+    return { reply: "For wheat in Rabi, irrigate at CRI (21 DAS), tillering, late jointing, flowering and grain filling — about 5 irrigations totaling ~40 cm. Use the Smart Irrigation module for stage-wise water calculations." };
+  }
+  return { reply: "I can advise on crops, irrigation, soil, pests, prices and subsidies. Try asking: 'Best crop for sandy soil with limited water?' or 'How to treat yellow rust in wheat?' or 'When to irrigate wheat?'." };
 }
 
 // Deterministic "vision" fallback: cycle through plausible diagnoses
@@ -142,7 +171,7 @@ async function handlePlanner(input: any) {
   const ai = await callGemini(
     `You are an agronomist for Rajasthan, India. Recommend the best 4 crops for a field with soil=${input.soil}, water availability=${input.water}, market trend=${input.marketTrend}, forecast rain=${input.weatherRain}mm/week. Respond as JSON: {"ranked":[{"name","score"(0-99),"yieldQtl"(qtl/acre),"revenue"(INR),"profit"(INR),"waterNeed","growthDays"}],"best":{...}}. Respond only with JSON.`
   );
-  if (ai) {
+  if (ai && ai.trim()) {
     try { return JSON.parse(ai); } catch { /* fall through */ }
   }
   return fallbackPlanner(input);
@@ -153,19 +182,21 @@ async function handleSoil(input: any) {
   const ai = await callGemini(
     `You are a soil scientist. Given nutrient report ${JSON.stringify(report)}, give 3-5 practical improvement recommendations. JSON: {"recommendations":[{"kind","text"}],"status"}. Respond only with JSON.`
   );
-  if (ai) {
+  if (ai && ai.trim()) {
     try { return JSON.parse(ai); } catch { /* fall through */ }
   }
   return fallbackSoil(report);
 }
 
 async function handleImage(body: any) {
-  if (body.imageBase64 && GEMINI_KEY) {
+  if (body.imageBase64) {
     const out = await callGeminiVision(
       "You are a plant pathologist. Identify disease/pest/nutrient deficiency in this crop image. Respond as JSON: {disease, type (Disease|Pest|Nutrient|Growth), confidence (0-100), stage, severity (Low|Moderate|Severe), treatments:[{kind,text}]}. Only JSON.",
       body.imageBase64, body.mime ?? "image/jpeg"
     );
-    if (out) { try { return JSON.parse(out); } catch { /* fall through */ } }
+    if (out && out.trim()) {
+      try { return JSON.parse(out); } catch { /* fall through */ }
+    }
   }
   return fallbackImage();
 }
@@ -174,7 +205,7 @@ async function handleAssistant(input: any) {
   const ai = await callGemini(
     `You are FarmSOS, an AI agriculture advisor for Indian farmers in Hindi and English. Answer briefly and practically (max 3 sentences): ${input.prompt}`
   );
-  if (ai) return { reply: ai };
+  if (ai && ai.trim()) return { reply: ai };
   return fallbackAssistant(input.prompt ?? "");
 }
 
